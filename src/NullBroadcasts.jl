@@ -46,18 +46,21 @@ broadcasted_sum(args) =
 Base.broadcasted(::NullBroadcasted, ::typeof(+), args...) =
     broadcasted_sum(filter(arg -> !(arg isa NullBroadcasted), args))
 
-Base.broadcasted(op::typeof(-), ::NullBroadcasted, arg) = Base.broadcasted(op, arg)
-Base.broadcasted(op::typeof(-), arg, ::NullBroadcasted) =
-    Base.broadcasted(Base.identity, arg)
-Base.broadcasted(op::typeof(-), a::NullBroadcasted) = NullBroadcasted()
-Base.broadcasted(op::typeof(-), a::NullBroadcasted, ::NullBroadcasted) =
-    Base.broadcasted(op, a)
+#! format: off
 
-Base.broadcasted(op::typeof(+), ::NullBroadcasted, args...) = Base.broadcasted(op, args...)
-Base.broadcasted(op::typeof(+), arg, ::NullBroadcasted, args...) =
-    Base.broadcasted(op, arg, args...)
-Base.broadcasted(op::typeof(+), a::NullBroadcasted, ::NullBroadcasted, args...) =
-    Base.broadcasted(op, a, args...)
+Base.broadcasted(op::typeof(-), ::NullBroadcasted, arg) = Base.broadcasted(op, arg)
+Base.broadcasted(op::typeof(-), a::NullBroadcasted) = NullBroadcasted()
+Base.broadcasted(op::typeof(-), a::NullBroadcasted, ::NullBroadcasted) = Base.broadcasted(op, a)
+# Specialize on identity cases:
+Base.broadcasted(::typeof(-), a, ::NullBroadcasted) = a
+
+Base.broadcasted(op::typeof(+), ::NullBroadcasted, a, args...) = Base.broadcasted(op, a, args...)
+Base.broadcasted(op::typeof(+), arg, ::NullBroadcasted, a, args...) = Base.broadcasted(op, arg, a, args...)
+Base.broadcasted(op::typeof(+), a::NullBroadcasted, ::NullBroadcasted, args...) = Base.broadcasted(op, a, args...)
+
+# Specialize on identity cases:
+Base.broadcasted(::typeof(+), ::NullBroadcasted, a) = a
+Base.broadcasted(::typeof(+), a, ::NullBroadcasted) = a
 
 Base.broadcasted(op::typeof(*), ::NullBroadcasted, args...) = NullBroadcasted()
 Base.broadcasted(op::typeof(*), arg, ::NullBroadcasted) = NullBroadcasted()
@@ -67,6 +70,8 @@ Base.broadcasted(op::typeof(/), arg, ::NullBroadcasted) = NullBroadcasted()
 Base.broadcasted(op::typeof(/), ::NullBroadcasted, ::NullBroadcasted) = NullBroadcasted()
 
 Base.broadcasted(op::typeof(identity), a::NullBroadcasted) = a
+
+#! format: on
 
 function skip_materialize(dest, bc::Base.Broadcast.Broadcasted)
     if typeof(bc.f) <: typeof(+) || typeof(bc.f) <: typeof(-)
