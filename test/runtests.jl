@@ -12,17 +12,16 @@ import Base.Broadcast: instantiate, materialize, Broadcasted, DefaultArrayStyle
 @testset "NullBroadcasted" begin
     x = [1]
     a = NullBroadcasted()
-    @test typeof(lazy.(x .+ a)) <: Broadcasted{
+    @test typeof(lazy.(x .* 1 .+ a)) <: Broadcasted{
         DefaultArrayStyle{1},
         Tuple{Base.OneTo{Int64}},
-        typeof(+),
-        Tuple{Vector{Int64}},
+        typeof(*),
+        Tuple{Vector{Int64}, Int64}
     }
-    @test typeof(lazy.(a .+ x)) <: Broadcasted{
+    @test typeof(lazy.(a .+ x .* 1)) <: Broadcasted{
         DefaultArrayStyle{1},
         Tuple{Base.OneTo{Int64}},
-        typeof(+),
-        Tuple{Vector{Int64}},
+        typeof(*), Tuple{Vector{Int64}, Int64}
     }
     @test lazy.(a .* x) isa NullBroadcasted
     @test lazy.(a ./ x) isa NullBroadcasted
